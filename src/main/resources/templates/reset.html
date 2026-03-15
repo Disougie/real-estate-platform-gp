@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Reset Password</title>
+        <style>
+            
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 18px;
+                background-color: #1c3456;
+            }
+            main {
+                width: 50%;
+                margin: 50px auto;
+            }
+
+            @media(max-width: 767px) {
+                main {
+                    width: 90%;
+                }
+            }
+
+            form {
+                
+                color: white;
+                margin: 0 20%;
+            }
+
+            form img {
+                display: block;
+                margin: auto;
+                width: 130px;
+                margin-bottom: 30px;
+            }
+
+            form div {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                margin: 20px 0;
+            }
+
+            form div input {
+                height: 25px;
+            }
+
+            .submit {   
+                grid-area: submit;
+                display: block;
+                margin: 0 auto;
+                padding: 2px 25px;
+                color: #1c3456;
+                font-weight: bold;
+                font-size: 18px;
+            }
+
+        </style>
+    </head>
+    <body>
+        <main dir="rtl">
+            <form th:action="@{/api/v1/reset-password}" method="post">
+                <img th:src="@{/images/logo.png}" alt="logo">
+				<input type="hidden" name="token" th:value="${token}" />
+                <div>
+                    <label for="newPassword" class="input-lable1">كلمة السر الجديدة</label>
+                    <input type="password" name="newPassword" id="newPassword" class="password-input1" required>
+                </div>
+                <div>
+                    <label for="confirmPassword" class="input-lable2">تأكيد كلمة السر</label>
+                    <input type="password" name="confirmPassword" id="confirmPassword" class="password-input2" required>
+                </div>
+                <input type="submit" class="submit" value="تأكيد">
+            </form>
+        </main>
+    </body>
+</html>
