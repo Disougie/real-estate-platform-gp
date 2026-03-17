@@ -1,0 +1,1 @@
+create fulltext index user_name_email_index on app_user (name,email);
