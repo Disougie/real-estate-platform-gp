@@ -1,3 +1,15 @@
+# Build stage
+FROM maven:3.9-eclipse-temurin-21 AS build
+
+WORKDIR /app
+COPY . .
+
+RUN mvn clean package -DskipTests
+
+# Run stage
 FROM eclipse-temurin:21-jre-alpine
-ADD target/app.jar app.jar
-ENTRYPOINT ["java","-Xms128m","-Xmx256m","-jar","/app.jar"]
+
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+
+ENTRYPOINT ["java","-Xms128m","-Xmx256m","-jar","app.jar"]
