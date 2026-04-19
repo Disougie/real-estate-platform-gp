@@ -33,7 +33,7 @@ public class SearchRepositoryImpl implements SearchRepository {
 	public Page<Property> findByText(String text, int page, int size) {
 		
 		List<Document> pipeline = Arrays.asList(new Document("$search", 
-			    new Document("index", "property_search")
+			    new Document("index", "property_search_index")
 			            .append("compound", 
 			    new Document("must", Arrays.asList(new Document("text", 
 			                    new Document("query", text)

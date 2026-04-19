@@ -23,5 +23,6 @@ public interface PropertyRepository extends MongoRepository<Property, String>, S
 	@Query("{$or: [{\"location.city\":{$in: ?0}}, {\"location.area\": {$in: ?1}}, {type: {$in: ?2}}, {price: {$lte: ?3, $gte: ?4}}, {\"features.size\": {$lte: ?5, $gte: ?6}}]}")
 	List<Property> findUserPrefrencePropertyies(Collection<String> city, Collection<String> area, Collection<String> type, double minprice, double maxPrice, int minSize, int maxSize, Pageable pageable);
 	
-
+	@Query(value = "{}", fields = "{_id: 1}")
+	List<Property> keepAlive(Pageable pageable);
 }

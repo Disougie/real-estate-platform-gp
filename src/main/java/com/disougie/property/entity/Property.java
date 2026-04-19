@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.persistence.Embedded;
@@ -22,6 +25,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @Builder
+@CompoundIndex(name = "filtering_index", def = "{'price': 1, 'size': 1}")
 public class Property {
 	
 	@Id
@@ -42,7 +46,7 @@ public class Property {
 	@Embedded
 	private Features features;
 	
-//	@GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
+	@GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
 	private GeoJsonPoint mapsLocation;
 	
 	@Embedded
