@@ -25,12 +25,8 @@ public class InitialContractResponseMapper implements Function<InitialContract, 
 		
 		return new initialContractResponse(
 				initialContract.getId(),
-				new ContractData(
-						initialContract.getId(), 
-						"Real Estate Platform", 
-						initialContract.getCreated_at().toString(), 
-						initialContract.getExpire_at().toString()
-				), 
+				initialContract.getCreated_at().toString(),
+				initialContract.getExpire_at().toString(),
 				new UserData(
 						initialContract.getOwner().getName(), 
 						initialContract.getOwner().getPhone(), 
@@ -43,10 +39,11 @@ public class InitialContractResponseMapper implements Function<InitialContract, 
 				), 
 				new PropertyData(
 						initialContract.getType().toString(), 
-						property.getFeatures().getSize() + "", 
-						property.getFeatures().getRooms()+ ""
+						property.getLocation().getCity() + " - " + property.getLocation().getArea(),
+						property.getFeatures().getSize() + ""
 				), 
 				new FinancialData(
+						initialContract.getType() == InitialContractType.RENT ? property.getPrice() : null,
 						initialContract.getRentDuration(),
 						initialContract.getOverall_contract_amount()
 				),

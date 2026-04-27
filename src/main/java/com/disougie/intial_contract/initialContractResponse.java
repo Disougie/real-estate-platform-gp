@@ -3,7 +3,8 @@ package com.disougie.intial_contract;
 public record initialContractResponse(
 		
 		long id,
-		ContractData contract_data,
+		String created_at,
+		String expire_at,
 		UserData owner_data,
 		UserData seeker_data,
 		PropertyData property_data,
