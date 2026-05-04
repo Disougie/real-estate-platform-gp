@@ -226,6 +226,7 @@ public class PropertyService {
 			Integer maxBaths, Double minPrice, Integer maxPrice, Integer minSize,
 			Integer maxSize, int page, int size
 	) {
+		System.out.println(minRooms + "- " + maxRooms);
 		Page<PropertyBriefResponse> response = propertyRepository
 				.findByFilters(
 					type, city, area, minRooms, maxRooms, 

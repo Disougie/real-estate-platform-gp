@@ -19,11 +19,15 @@ import com.disougie.property.entity.Property;
 import com.disougie.property.entity.PropertyType;
 import com.disougie.util.PageResponse;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("api/v1/properties")
 @RequiredArgsConstructor
+@SecurityRequirement(
+		name = "BearerAuth"
+)
 public class PropertyController {
 	
 	private final PropertyService propertyService;

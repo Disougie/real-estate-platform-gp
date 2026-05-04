@@ -11,11 +11,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.disougie.intial_contract.initialContractResponse;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("api/v1/lawyer/initial-contracts")
 @RequiredArgsConstructor
+@SecurityRequirement(
+		name = "BearerAuth"
+)
 public class LawyerController {
 	
 	private final LawyerService lawyerService;

@@ -12,11 +12,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("api/v1/initial-contracts")
 @RequiredArgsConstructor
+@SecurityRequirement(
+		name = "BearerAuth"
+)
 public class InitialContractController {
 
 	private final InitialContractService initialContractService;

@@ -158,7 +158,7 @@ public class RecommendationService {
 						   areaScore * 0.1 + 
 						   sizeScore * 0.1;
 			recommendations.offer(new RecommendationItem(property.getId(), score));
-			if(recommendations.size() > 10)
+			if(recommendations.size() > 15)
 				recommendations.poll();
 		}
 		

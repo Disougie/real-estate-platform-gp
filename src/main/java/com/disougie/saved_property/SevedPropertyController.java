@@ -15,11 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.disougie.property.PropertyDetailedResponse;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("api/v1/saved-properties")
 @RequiredArgsConstructor
+@SecurityRequirement(
+		name = "BearerAuth"
+)
 public class SevedPropertyController {
 	
 	private final SavedPropertyService savedPropertyService;

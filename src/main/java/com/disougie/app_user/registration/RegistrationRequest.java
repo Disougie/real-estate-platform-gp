@@ -16,7 +16,7 @@ public record RegistrationRequest(
 		@Password
 		String password,
 		@Password
-		String confirm_password
+		String confirmPassword
 ) {
 	
 }

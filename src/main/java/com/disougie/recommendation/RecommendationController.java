@@ -9,11 +9,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.disougie.property.PropertyDetailedResponse;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("api/v1/recommendation")
 @RequiredArgsConstructor
+@SecurityRequirement(
+		name = "BearerAuth"
+)
 public class RecommendationController {
 	
 	private final RecommendationService recommendationService;

@@ -4,8 +4,9 @@ import java.util.function.Function;
 
 import org.springframework.stereotype.Component;
 
-import com.disougie.exception.ResourceNotFoundException;
 import com.disougie.property.PropertyRepository;
+import com.disougie.property.entity.Features;
+import com.disougie.property.entity.Location;
 import com.disougie.property.entity.Property;
 
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,15 @@ public class InitialContractResponseMapper implements Function<InitialContract, 
 		
 		Property property = propertyRepository
 				.findById(initialContract.getProperty_id())
-				.orElseThrow(() -> new ResourceNotFoundException("property not found"));
+				.orElse(
+						Property
+							.builder()
+							.title("deleted property")
+							.price(0)
+							.location(new Location("unkown", "unkown"))
+							.features(new Features(0, 0, 0))
+							.build()
+				);
 		
 		return new initialContractResponse(
 				initialContract.getId(),

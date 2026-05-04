@@ -3,14 +3,18 @@ package com.disougie.property;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
@@ -29,39 +33,183 @@ public class SearchRepositoryImpl implements SearchRepository {
 	
 	private final MongoTemplate mongoTemplate;
 	
+//	public Page<Property> searchRealEstates(String text, Pageable pageable) {
+//	    
+//	    // 1. مرحلة البحث (Atlas Search)
+//	    AggregationOperation searchOperation = context -> new Document("$search", 
+//	        new Document("index", "property_search_index")
+//	        .append("text", new Document("query", text).append("path", "description"))
+//	    );
+//
+//	    // 2. استخدام $facet لتشغيل مسارين في وقت واحد
+//	    AggregationOperation facetOperation = Aggregation.facet(
+//	            // المسار الأول: جلب البيانات (Content)
+//	            Aggregation.skip(pageable.getOffset()),
+//	            Aggregation.limit(pageable.getPageSize())
+//	        ).as("data")
+//	        .and(
+//	            // المسار الثاني: جلب بيانات البحث الوصفية (Total Count)
+//	            context -> new Document("$replaceWith", "$$SEARCH_META"),
+//	            Aggregation.limit(1)
+//	        ).as("metadata");
+//
+//	    Aggregation aggregation = Aggregation.newAggregation(searchOperation, facetOperation);
+//
+//	    // 3. تنفيذ الاستعلام
+//	    Document result = mongoTemplate
+//	    		.aggregate(aggregation, "property", Document.class)
+//	    		.getUniqueMappedResult();
+//
+//	    // 4. استخراج البيانات والعدد الكلي من النتيجة
+//	    List<Document> dataDocs = (List<Document>) result.get("data");
+//	    List<Document> metaDocs = (List<Document>) result.get("metadata");
+//
+//	    // تحويل الـ Documents إلى Objects (العقارات)
+//	    List<Property> content = dataDocs.stream()
+//	        .map(doc -> mongoTemplate.getConverter().read(Property.class, doc))
+//	        .collect(Collectors.toList());
+//
+//	    // استخراج العدد الكلي (Total Elements) من الـ metadata
+//	    long total = 0;
+//	    if (!metaDocs.isEmpty()) {
+//	        Document countDoc = (Document) metaDocs.get(0).get("count");
+//	        total = countDoc.getLong("total");
+//	    }
+//
+//	    return new PageImpl<>(content, pageable, total);
+//	}
+	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Page<Property> findByText(String text, int page, int size) {
 		
-		List<Document> pipeline = Arrays.asList(new Document("$search", 
+		Pageable pageable = PageRequest.of(page, size);
+		
+		Document searchDocsStage = new Document("$search", 
 			    new Document("index", "property_search_index")
-			            .append("compound", 
-			    new Document("must", Arrays.asList(new Document("text", 
-			                    new Document("query", text)
-			                            .append("path", Arrays.asList("title", "description", "location.city", "location.area")))))
-			                .append("filter", Arrays.asList(new Document("text", 
-			                    new Document("query", "AVAILABLE")
-			                            .append("path", "status")))))), 
-			    new Document("$sort", new Document("price", 1L))
-		);
+	            .append("compound", new Document("must", Arrays.asList(new Document("text", 
+	                    new Document("query", text)
+	                            .append("path", Arrays.asList("title", "description", "location.city", "location.area")))))
+	                .append("filter", Arrays.asList(new Document("text", 
+	                    new Document("query", "AVAILABLE")
+	                            .append("path", "status")))))
+		    );
+
+		    // بناء Pipeline البيانات: Search -> Skip -> Limit
+		    Aggregation dataAggregation = Aggregation.newAggregation(
+		        context -> searchDocsStage,
+		        Aggregation.skip(pageable.getOffset()),
+		        Aggregation.limit(pageable.getPageSize())
+		    );
+
+		    List<Property> content = mongoTemplate
+		    		.aggregate(dataAggregation, "property", Property.class)
+		    		.getMappedResults();
+
+
+		    // --- الاستعلام الثاني: جلب العدد الكلي (The Total Count) ---
+		    Document searchMetaStage = new Document("$searchMeta", 
+		        new Document("index", "property_search_index")
+		        .append("count", new Document("type", "total")) // هذا يطلب العدد الكلي
+		        .append("compound", new Document("must", Arrays.asList(new Document("text", 
+	                    new Document("query", text)
+	                            .append("path", Arrays.asList("title", "description", "location.city", "location.area")))))
+	                .append("filter", Arrays.asList(new Document("text", 
+	                    new Document("query", "AVAILABLE")
+	                            .append("path", "status")))))
+		    );
+
+		    Aggregation metaAggregation = Aggregation
+		    		.newAggregation(context -> searchMetaStage);
+		    
+		    Document metaResult = mongoTemplate
+		    		.aggregate(metaAggregation, "property", Document.class)
+		    		.getUniqueMappedResult();
+
+		    long total = 0;
+		    if (metaResult != null && metaResult.containsKey("count")) {
+		        Document countDoc = (Document) metaResult.get("count");
+		        total = countDoc.getLong("total"); // أو getLong حسب حجم بياناتك
+		    }
+
+		    return new PageImpl<>(content, pageable, total);
 		
-		int totalElements = pipeline.size();
-				
-		int totalPages = (int) Math.ceil(totalElements / (size * 1.0));
+//	    AggregationOperation searchOperation = context -> new Document("$search", 
+//			    new Document("index", "property_search_index")
+//	            .append("compound", new Document("must", Arrays.asList(new Document("text", 
+//	                    new Document("query", text)
+//	                            .append("path", Arrays.asList("title", "description", "location.city", "location.area")))))
+//	                .append("filter", Arrays.asList(new Document("text", 
+//	                    new Document("query", "AVAILABLE")
+//	                            .append("path", "status")))))
+//	    );
+//
+//	    AggregationOperation facetOperation = Aggregation.facet(
+//	            Aggregation.skip(pageable.getOffset()),
+//	            Aggregation.limit(pageable.getPageSize())
+//	        ).as("data")
+//	        .and(
+//	            context -> new Document("$replaceWith", "$SEARCH_META"),
+//	            Aggregation.limit(1)
+//	        ).as("metadata");
+//
+//	    Aggregation aggregation = Aggregation.newAggregation(searchOperation, facetOperation);
+//
+//	    Document result = mongoTemplate
+////				.getCollection("property")
+////				.aggregate(aggregation)
+//	    		.aggregate(aggregation, "property", Document.class)
+//	    		.getUniqueMappedResult();
+//
+//	    List<Document> dataDocs = (List<Document>) result.get("data");
+//	    List<Document> metaDocs = (List<Document>) result.get("metadata");
+//
+//	    List<Property> content = dataDocs.stream()
+//	    		.map(doc -> mongoTemplate.getConverter().read(Property.class, doc))
+//	    		.collect(Collectors.toList());
+//
+//	    long total = 0;
+//	    if (!metaDocs.isEmpty()) {
+//	        Document countDoc = (Document) metaDocs.get(0).get("count");
+//	        total = countDoc.getLong("total");
+//	    }
+//
+//	    return new PageImpl<>(content, pageable, total);
+//	    
 		
-		if(page >= totalPages) {
-			return new PageImpl<Property>(List.of());
-		}
+		
+//		List<Document> pipeline = Arrays.asList(new Document("$search", 
+//			    new Document("index", "property_search_index")
+//			            .append("compound", 
+//			    new Document("must", Arrays.asList(new Document("text", 
+//			                    new Document("query", text)
+//			                            .append("path", Arrays.asList("title", "description", "location.city", "location.area")))))
+//			                .append("filter", Arrays.asList(new Document("text", 
+//			                    new Document("query", "AVAILABLE")
+//			                            .append("path", "status")))))), 
+//			    new Document("$sort", new Document("price", 1L))
+//		);
 		
 		
-		 List<Property> result = mongoTemplate
-				.getCollection("property")
-				.aggregate(pipeline)
-				.map(doc -> mongoTemplate.getConverter().read(Property.class, doc))
-				.into(new ArrayList<>());
+//		int totalPages = (int) Math.ceil(totalElements / (size * 1.0));
 		
-		return new PageImpl<Property>(
-				result, PageRequest.of(page, size), totalElements
-		);
+//		if(page >= totalPages) {
+//			return new PageImpl<Property>(List.of());
+//		}
+		
+		
+//		List<Property> result = mongoTemplate
+//				.getCollection("property")
+//				.aggregate(pipeline)
+//				.map(doc -> mongoTemplate.getConverter().read(Property.class, doc))
+//				.into(new ArrayList<>());
+//		
+//		int totalElements = result.size();
+//		 
+//		
+//		return new PageImpl<Property>(
+//				result, PageRequest.of(page, size), totalElements
+//		);
 		
 	}
 

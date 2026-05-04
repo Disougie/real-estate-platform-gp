@@ -25,11 +25,15 @@ import com.disougie.blog.BlogRequest;
 import com.disougie.property.PropertyAdminResponse;
 import com.disougie.util.PageResponse;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("api/v1/admin")
 @RequiredArgsConstructor
+@SecurityRequirement(
+		name = "BearerAuth"
+)
 public class AdminController {
 	
 	private final AdminService adminService;

@@ -40,7 +40,7 @@ public class RegistrationService {
 			throw new ConstraintViolationException("Email already taken",Set.of());
 		}
 		
-		if(!request.password().equals(request.confirm_password())) {
+		if(!request.password().equals(request.confirmPassword())) {
 			throw new ConstraintViolationException(
 					"The password does not match it's confimation", Set.of()
 			);

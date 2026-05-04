@@ -1,5 +1,5 @@
 package com.disougie.app_user.login;
 
-public record LoginResponse(String name, String role) {
+public record LoginResponse(String name, String role, Long id) {
 
 }

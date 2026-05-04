@@ -20,7 +20,7 @@ public class RateLimitService {
 			redisTemplate.opsForValue().set(key, 1, 60, TimeUnit.SECONDS);
 			return true;
 		}
-		if(id < 15) {
+		if(id < 30) {
 			redisTemplate.opsForValue().increment(key);
 			return true;
 		}
