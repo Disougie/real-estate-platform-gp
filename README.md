@@ -87,4 +87,4 @@ The system exposes RESTful APIs for:
 - Admin Dashboard
 - Notifications
 
-> 📌 API documentation available in (./docs/api-docs.md)
+> 📌 API documentation available in [docs/api-docs.md](./docs/api-docs.md)

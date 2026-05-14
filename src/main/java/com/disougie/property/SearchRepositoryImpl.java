@@ -3,7 +3,6 @@ package com.disougie.property;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -14,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Point;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
@@ -79,7 +77,6 @@ public class SearchRepositoryImpl implements SearchRepository {
 //	    return new PageImpl<>(content, pageable, total);
 //	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public Page<Property> findByText(String text, int page, int size) {
 		
@@ -297,7 +294,7 @@ public class SearchRepositoryImpl implements SearchRepository {
 		}
 		
 		if(maxSize != null) {
-			pipeline.add(Aggregates.match(Filters.eq("features.size",maxSize)));
+			pipeline.add(Aggregates.match(Filters.lte("features.size",maxSize)));
 		}
 		
 		
@@ -314,7 +311,7 @@ public class SearchRepositoryImpl implements SearchRepository {
 		int totalPages = (int) Math.ceil(totalElements / (size * 1.0));
 		
 		if(page >= totalPages)
-			return new PageImpl<Property>(List.of());
+			return new PageImpl <Property>(List.of(), PageRequest.of(page, size), totalElements);
 		
 		pipeline.add(Aggregates.sort(Sorts.ascending("price")));
 				
@@ -324,8 +321,12 @@ public class SearchRepositoryImpl implements SearchRepository {
 				.map(doc -> mongoTemplate.getConverter().read(Property.class, doc))
 				.into(new ArrayList<>());
 
+		int end = page * size + size > result.size() ? result.size() : page * size + size; 
+		
 		return new PageImpl<Property>(
-				result, PageRequest.of(page, size), totalElements
+				result.subList(page * size, end), 
+				PageRequest.of(page, size),
+				totalElements
 		);
 		
 	}
