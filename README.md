@@ -13,7 +13,7 @@ It aims to reduce dependency on intermediaries and improve the overall experienc
 
 ## 🏗️ System Architecture (High-Level)
 
-![System Architecture](./docs/ComponentDiagram.png)
+![System Architecture](./docs/Real-Estate-Platform-Architectural-Diagram.jpg)
 
 
 ---
@@ -87,4 +87,4 @@ The system exposes RESTful APIs for:
 - Admin Dashboard
 - Notifications
 
-> 📌 API documentation available in [docs/api-docs.md](./docs/api-docs.md)
+> 📌 Full API documentation available in [docs/api-docs.md](./docs/api-docs.md)
