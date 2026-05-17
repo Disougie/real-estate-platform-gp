@@ -16,7 +16,7 @@ public interface InitialContractRepository extends JpaRepository<InitialContract
 	@Query("from InitialContract where owner = :owner")
 	List<InitialContract> findByOwner(@Param("owner") AppUser owner);
 	
-	@Query("from InitialContract where owner = :user or seeker = :user")
+	@Query("from InitialContract where owner = :user or seeker = :user order by created_at desc")
 	List<InitialContract> findByUser(@Param("user") AppUser user);
 	
 	@Query("from InitialContract where property_id = :id")

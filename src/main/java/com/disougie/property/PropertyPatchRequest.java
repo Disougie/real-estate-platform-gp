@@ -9,7 +9,8 @@ public record PropertyPatchRequest(
 		String title,
 		String description,
 		Double price,
-		List<MultipartFile> images
+		List<MultipartFile> images,
+		List<String> existingImagesUrls
 		
 ) {
 	

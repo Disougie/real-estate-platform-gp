@@ -22,7 +22,15 @@ public class DisableUserService {
 	private final PropertyRepository propertyRepository;
 
 	public void disableAccount(DisableRequest request) {
+		
 		AppUser user = JwtService.getCurrentUser();
+		
+		if(user.getEmail().equals("admin@system.com")) {
+			throw new ConstraintViolationException(
+					"the main admin can not be disabled", Set.of()
+			);
+		}
+		
 		if(!passwordEncoder.matches(request.password(), user.getPassword())) {
 			throw new ConstraintViolationException("password not correct", Set.of());
 		}

@@ -1,7 +1,6 @@
 package com.disougie.intial_contract;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 
@@ -18,6 +17,7 @@ import com.disougie.property.entity.Property;
 import com.disougie.property.entity.PropertyStatus;
 import com.disougie.property.entity.PropertyType;
 import com.disougie.security.JwtService;
+import com.disougie.util.TimeUtil;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +53,7 @@ public class InitialContractService {
 		
 		long currentUserId = JwtService.getCurrentUser().getId();
 		
-		if(currentUserId != contract.getOwner().getId()) {
+		if(currentUserId != contract.getOwner().getId() && currentUserId != contract.getSeeker().getId()) {
 			throw new AccessDeniedException("you are not authorized to process this contract");
 		}
 		
@@ -74,6 +74,12 @@ public class InitialContractService {
 		);
 		
 		AppUser seeker = JwtService.getCurrentUser();
+		
+		if(owner.getId() == seeker.getId()) {
+			throw new ConstraintViolationException(
+					"can not reserve your own property", Set.of()
+			);
+		}
 		
 		PropertyType propertyType = property.getType();
 		InitialContractType contractType = null;
@@ -98,7 +104,7 @@ public class InitialContractService {
 				overallContractAmount = property.getPrice();
 		};
 		
-		LocalDateTime now = LocalDateTime.now(ZoneId.of("Africa/Khartoum"));
+		LocalDateTime now = TimeUtil.now();
 		
 		InitialContract initialContract = InitialContract.builder()
 				.property_id(request.property_id())
@@ -107,7 +113,7 @@ public class InitialContractService {
 				.type(contractType)
 				.status(InitialContractStatus.PENDING_APPROVAL)
 				.created_at(now)
-				.expire_at(now.plusMinutes(15))
+				.expire_at(now.plusDays(2))
 				.rentDuration(rentDuration)
 				.overall_contract_amount(overallContractAmount)
 				.build();
@@ -116,7 +122,7 @@ public class InitialContractService {
 		
 		notificationService.sendNotification(
 			owner, 
-			"new initial contract is requested from "+ seeker.getName() +" please check out your initial contracts"
+			"لديك طلب حجز مبدئي للعقار خاصتك, رجاء قم بمراجعة الحجوزات المبدئية"
 		);
 		
 		return new InitialContractCreationResponse(initialContract.getId());
@@ -159,7 +165,7 @@ public class InitialContractService {
 									InitialContractStatus contractStatus, 
 									PropertyStatus propertyStatus
 	) {
-		if(contract.getOwner().getId() != JwtService.getCurrentUser().getId()) {
+		if(contract.getOwner().getId() != JwtService.getCurrentUser().getId() && contract.getSeeker().getId() != JwtService.getCurrentUser().getId()) {
 			throw new AccessDeniedException("not authroize to do this process");
 		}
 		

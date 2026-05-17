@@ -1,7 +1,8 @@
 package com.disougie.app_user.forgot_password;
 
-import java.util.Map;
+import java.net.URI;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,10 +29,13 @@ public class ResetPasswordController {
 	
 	@PostMapping
 	@ResponseBody
-	public ResponseEntity<Map<String, String>> resetPassword(
+	public ResponseEntity<Void> resetPassword(
 							/*	@Validated @RequestBody */ ResetPasswordRequest request){
-		passwordService.resetPassword(request);
-		return ResponseEntity.ok(Map.of("message","password change succfully"));
+		String redirectWebsite = passwordService.resetPassword(request);
+		return ResponseEntity
+				.status(HttpStatus.FOUND)
+				.location(URI.create(redirectWebsite))
+				.build();
 	}
 	
 }

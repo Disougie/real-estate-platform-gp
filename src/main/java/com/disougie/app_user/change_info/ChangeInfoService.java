@@ -38,6 +38,12 @@ public class ChangeInfoService {
 		
 		AppUser user =  JwtService.getCurrentUser();
 		
+		if(user.getEmail().equals("admin@system.com")) {
+			throw new ConstraintViolationException(
+					"the main admin email can not be change", Set.of()
+			);
+		}
+		
 		Optional<ChangeEmail> changeEmailOptional = changeEmailRepository
 				.findByUser(user);
 		

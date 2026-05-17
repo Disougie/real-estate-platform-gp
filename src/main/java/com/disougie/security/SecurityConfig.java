@@ -121,10 +121,12 @@ public class SecurityConfig {
 									"/api/v*/change/**"
 							).hasRole(USER.getRole())
 							.requestMatchers(
+									"/api/v*/users/**",
 									"/api/v*/lawyer/**",
 									"/api/v*/change/**"
 							).hasRole(LAWYER.getRole())
 							.requestMatchers(
+									"/api/v*/users/**",
 									"/api/v*/admin/**",
 									"/api/v*/change/**"
 							).hasRole(ADMIN.getRole())

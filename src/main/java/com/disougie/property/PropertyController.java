@@ -3,10 +3,12 @@ package com.disougie.property;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -71,9 +73,9 @@ public class PropertyController {
 		return ResponseEntity.noContent().build();
 	}
 	
-	@PatchMapping("{id}")
+	@PatchMapping(value = "{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<?> changePropertyAd(@PathVariable String id, 
-											  @RequestBody PropertyPatchRequest request){
+											  @ModelAttribute PropertyPatchRequest request){
 		propertyService.changePropertyAd(id,request);
 		return ResponseEntity.noContent().build();
 	}
@@ -114,11 +116,11 @@ public class PropertyController {
 	}
 	
 	@GetMapping("search/coord")
-	public ResponseEntity<List<PropertyBriefResponse>> searchByCoordinates(
+	public ResponseEntity<List<PropertyMapResponse>> searchByCoordinates(
 										@RequestParam double lng, 
 										@RequestParam double lat,
 										@RequestParam(required = false) Double maxDistance){
-		List<PropertyBriefResponse> response = propertyService.searchByCoordinates(lng,lat,maxDistance);
+		List<PropertyMapResponse> response = propertyService.searchByCoordinates(lng,lat,maxDistance);
 		return ResponseEntity.status(HttpStatus.OK).body(response);
 	}
 	

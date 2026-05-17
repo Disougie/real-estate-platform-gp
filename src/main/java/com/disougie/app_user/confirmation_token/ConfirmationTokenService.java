@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,8 @@ public class ConfirmationTokenService {
 	private final AppUserRepository appUserRepository;
 	private final ChangeEmailRepository changeEmailRepository;
 	private final RabbitTemplate rabbitTemplate;
+	@Value("${CORS_ORIGIN}")
+	private String website;
 	
 	public ConfirmationToken generateConfirmationToken(AppUser user) {
 		
@@ -45,24 +48,26 @@ public class ConfirmationTokenService {
 	
 	@Hidden
 	@Transactional
-	public void verifyToken(String tokenSting) {
+	public String verifyToken(String tokenSting) {
 		
 		ConfirmationToken token = confirmationTokenRepository.findByToken(tokenSting).orElseThrow(
 				() -> new ResourceNotFoundException("Token not found")
 		);
 		
-		if(LocalDateTime.now().isAfter(token.getExpireAt())) {
+		if(TimeUtil.now().isAfter(token.getExpireAt())) {
 			throw new ConstraintViolationException(
-					"This token has been expired ", Set.of()
+					"This token has been expired", Set.of()
 			);
 		}
 		
-		token.setConfirmedAt(LocalDateTime.now());
+		token.setConfirmedAt(TimeUtil.now());
 		confirmationTokenRepository.save(token);
 		
 		AppUser user = token.getUser();
 		user.setEnabled(true);
 		appUserRepository.save(user);
+		
+		return website + "/login";
 		
 	}
 
@@ -84,13 +89,13 @@ public class ConfirmationTokenService {
 			
 			ConfirmationToken confirmationToken = confirmationTokenOptional.get();
 			
-			if(confirmationToken.getExpireAt().isAfter(LocalDateTime.now())) {
+			if(confirmationToken.getExpireAt().isAfter(TimeUtil.now())) {
 				throw new ConstraintViolationException(
 						"you alreay have an active verification token, please check your email",Set.of()
 				);
 			}
 			else {
-				LocalDateTime now = LocalDateTime.now();
+				LocalDateTime now = TimeUtil.now();
 				
 				confirmationToken.setIssuedAt(now);
 				confirmationToken.setExpireAt(now.plusMinutes(15));
@@ -106,11 +111,10 @@ public class ConfirmationTokenService {
 				);
 			}
 				
-		}	
-				
+		}				
 	}
 
-	public void verifyChangeEmail(String token) {
+	public String verifyChangeEmail(String token) {
 		
 		ConfirmationToken confirmationToken = confirmationTokenRepository
 				.findByToken(token)
@@ -139,6 +143,8 @@ public class ConfirmationTokenService {
 				EMAIL_EXCHANGE, VERIFY_ROUTING_KEY, emailRequest
 		);
 		
+		return website + "/login";
 	}
+	
 
 }

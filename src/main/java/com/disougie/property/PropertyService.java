@@ -3,7 +3,10 @@ package com.disougie.property;
 import static com.disougie.recommendation.RecommendationMQConfig.RECOMMENDATION_EXCHANGE;
 import static com.disougie.recommendation.RecommendationMQConfig.RECOMMENDATION_ROUTING_KEY;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.CacheEvict;
@@ -37,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 public class PropertyService {
 	private final PropertyDetailedResponseMapper propertyDetailedResponseMapper;
 	private final PropertyBriefResponseMapper propertyBriefResponseMapper;
+	private final PropertyMapResponseMapper propertyMapResponseMapper;
 	@SuppressWarnings("rawtypes")
 	private final PageResponseMapper pageResponseMapper;
 	private final PropertyRepository propertyRepository;
@@ -193,17 +197,35 @@ public class PropertyService {
 			property.setPrice(request.price());
 		
 		if(request.images() != null) {
-			List<String> filesId = property
-					.getImages()
-					.stream()
-					.map(image -> image.getFileId())
-					.toList();
-			
-			for(String fileId: filesId)
-				imageService.deleteImage(fileId);
-			
-			List<Image> newImages = imageService.uploadImages(request.images());
-			property.setImages(newImages);
+			if(property.getImages() != null) {			
+				Set<String> existingImagesUrls = (request.existingImagesUrls() != null) 
+						? new HashSet<>(request.existingImagesUrls())
+								: new HashSet<>();
+				
+				
+				Set<Image> unwantedImages = property
+						.getImages()
+						.stream()
+						.filter(img -> !existingImagesUrls.contains(img.getImageUrl()))
+//					.map(image -> image.getFileId())
+						.collect(Collectors.toSet());
+				
+				for(Image unwantedImage: unwantedImages) {
+					imageService.deleteImage(unwantedImage.getFileId());				
+				}
+				
+//			Set<Image> wantedOldImages = new HashSet<>(property.getImages());
+				property.getImages().removeAll(unwantedImages);
+				
+				List<Image> newImages = imageService.uploadImages(request.images());
+				newImages.addAll(property.getImages());
+				
+				property.setImages(newImages);
+			}
+			else {
+				List<Image> newImages = imageService.uploadImages(request.images());				
+				property.setImages(newImages);
+			}
 		}
 		
 		propertyRepository.save(property);
@@ -237,12 +259,12 @@ public class PropertyService {
 		return pageResponseMapper.apply(response);
 	}
 
-	public List<PropertyBriefResponse> searchByCoordinates(double lng, double lat, Double maxDistance) {
+	public List<PropertyMapResponse> searchByCoordinates(double lng, double lat, Double maxDistance) {
 		if(maxDistance == null)
-			maxDistance = 1.0;
+			maxDistance = 5.0;
 		return propertyRepository.findNearByCoordinates(lng, lat, maxDistance)
 			.stream()
-			.map(propertyBriefResponseMapper)
+			.map(propertyMapResponseMapper)
 			.toList();
 	}
 

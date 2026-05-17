@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,8 @@ public class PasswordService {
 	private final ResetPasswordTokenRepository resetPasswordTokenRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final RabbitTemplate rabbitTemplate;
+	@Value("${CORS_ORIGIN}")
+	private String website;
 
 	public void forgotPassword(ForgotPasswordRequest request) {
 		
@@ -61,7 +64,7 @@ public class PasswordService {
 		
 	}
 
-	public void resetPassword(ResetPasswordRequest request) {
+	public String resetPassword(ResetPasswordRequest request) {
 				
 		ResetPasswordToken resetPasswordToken = resetPasswordTokenRepository
 				.findByToken(request.token())
@@ -87,6 +90,8 @@ public class PasswordService {
 		
 		resetPasswordToken.setUsed(true);
 		resetPasswordTokenRepository.save(resetPasswordToken);
+		
+		return website + "/login";
 	}
 
 }

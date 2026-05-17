@@ -1,5 +1,8 @@
 package com.disougie.app_user.confirmation_token;
 
+import java.net.URI;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,9 +22,12 @@ public class ConfirmationTokenController {
 	private final ConfirmationTokenService tokenService;
 	
 	@GetMapping("verify")
-	public ResponseEntity<?> verifyToken(@Validated @RequestParam String token){
-		tokenService.verifyToken(token);
-		return ResponseEntity.noContent().build();
+	public ResponseEntity<Void> verifyToken(@Validated @RequestParam String token){
+		String redirectWebsite = tokenService.verifyToken(token);
+		return ResponseEntity
+				.status(HttpStatus.FOUND)
+				.location(URI.create(redirectWebsite))
+				.build();
 	}
 	
 	@PostMapping("resend")
@@ -31,8 +37,11 @@ public class ConfirmationTokenController {
 	}
 	
 	@GetMapping("verify-change")
-	public ResponseEntity<?> verifyChangeEmail(@RequestParam String token){
-		tokenService.verifyChangeEmail(token);
-		return ResponseEntity.noContent().build();
+	public ResponseEntity<Void> verifyChangeEmail(@RequestParam String token){
+		String redirectWebsite = tokenService.verifyChangeEmail(token);
+		return ResponseEntity
+				.status(HttpStatus.FOUND)
+				.location(URI.create(redirectWebsite))
+				.build();
 	}
 }

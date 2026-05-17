@@ -13,6 +13,7 @@ import com.disougie.intial_contract.InitialContractRepository;
 import com.disougie.intial_contract.InitialContractResponseMapper;
 import com.disougie.intial_contract.InitialContractStatus;
 import com.disougie.intial_contract.initialContractResponse;
+import com.disougie.notification.NotificationService;
 import com.disougie.property.PropertyRepository;
 import com.disougie.property.entity.Property;
 import com.disougie.property.entity.PropertyStatus;
@@ -27,6 +28,7 @@ public class LawyerService {
 	private final InitialContractRepository initialContractRepository;
 	private final InitialContractResponseMapper initialContractResponseMapper;
 	private final PropertyRepository propertyRepository;
+	private final NotificationService notificationService;
 
 	public List<initialContractResponse> getPendingContracts() {
 		return initialContractRepository
@@ -90,6 +92,9 @@ public class LawyerService {
 		initialContractRepository.save(contract);
 		
 		propertyRepository.save(property);
+		
+		notificationService.sendNotification(contract.getOwner(), "لقد قام المحامي باتمام العمل على الحجز خاصتك");
+		notificationService.sendNotification(contract.getSeeker(), "لقد قام المحامي باتمام العمل على الحجز خاصتك");
 		
 	}
 
