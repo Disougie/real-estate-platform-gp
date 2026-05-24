@@ -262,7 +262,8 @@ public class PropertyService {
 	public List<PropertyMapResponse> searchByCoordinates(double lng, double lat, Double maxDistance) {
 		if(maxDistance == null)
 			maxDistance = 5.0;
-		return propertyRepository.findNearByCoordinates(lng, lat, maxDistance)
+		return propertyRepository
+			.findNearByCoordinates(lng, lat, maxDistance)
 			.stream()
 			.map(propertyMapResponseMapper)
 			.toList();

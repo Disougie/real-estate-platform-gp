@@ -37,7 +37,8 @@ public class LoginService {
 		return new LoginResponse(
 				user.getName(),
 				user.getRole().getRole(),
-				user.getId()
+				user.getId(),
+				user.getPhone()
 		);
 	}
 

@@ -3,6 +3,7 @@ package com.disougie.app_user.login;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,7 @@ public class LoginController {
 	
 	private final LoginService loginService;
 	
+	@CrossOrigin(origins = "*")
 	@PostMapping
 	public ResponseEntity<LoginResponse> login(
 									@Validated @RequestBody LoginRequest loginRequest,

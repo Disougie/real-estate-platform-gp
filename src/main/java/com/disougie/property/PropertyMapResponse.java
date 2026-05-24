@@ -10,7 +10,8 @@ public record PropertyMapResponse(
 		String location,
 		PropertyType type,
 		double price,
-		List<Double> position
+		List<Double> position,
+		String imageUrl
 ) {
 
 }

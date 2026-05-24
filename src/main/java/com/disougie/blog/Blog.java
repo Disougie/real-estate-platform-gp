@@ -34,7 +34,7 @@ public class Blog {
 	@Column(nullable = false)
 	private String title;
 	
-	@Column(nullable = false)
+	@Column(nullable = false, length = 1024)
 	private String content;
 	
 	private LocalDateTime createdAt;

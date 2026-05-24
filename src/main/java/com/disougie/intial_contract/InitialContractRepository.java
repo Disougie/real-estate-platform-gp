@@ -22,10 +22,10 @@ public interface InitialContractRepository extends JpaRepository<InitialContract
 	@Query("from InitialContract where property_id = :id")
 	List<InitialContract> findByPropertyId(@Param("id") String property_id);
 	
-	@Query("from InitialContract where status = :status")
+	@Query("from InitialContract where status = :status order by created_at desc")
 	List<InitialContract> findByStatus(@Param("status") InitialContractStatus status);
 	
-	@Query("from InitialContract where lawyer = :lawyer")
+	@Query("from InitialContract where lawyer = :lawyer order by created_at desc")
 	List<InitialContract> findByLawyer(@Param("lawyer")AppUser lawyer);
 	
 }

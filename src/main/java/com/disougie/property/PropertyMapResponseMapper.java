@@ -11,13 +11,18 @@ public class PropertyMapResponseMapper implements Function<Property, PropertyMap
 
 	@Override
 	public PropertyMapResponse apply(Property property) {
+		String imageUrl = null;
+		if(property.getImages() != null && !property.getImages().isEmpty()) {
+			imageUrl = property.getImages().getFirst().getImageUrl();
+		}
 		return new PropertyMapResponse(
 				property.getId(), 
 				property.getTitle(), 
 				property.getLocation().getArea(), 
 				property.getType(), 
 				property.getPrice(), 
-				property.getMapsLocation().getCoordinates()
+				property.getMapsLocation().getCoordinates(),
+				imageUrl
 		);
 	}
 

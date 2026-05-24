@@ -66,6 +66,15 @@ public class LawyerService {
 		
 		initialContractRepository.save(contract);
 		
+		notificationService.sendNotification(
+				contract.getOwner(), 
+				"تم قبول الحجز المبدئي من قبل محامي, سيتم التواصل معك للبدء في الاجراءات العملية"
+		);
+		notificationService.sendNotification(
+				contract.getSeeker(), 
+				"تم قبول الحجز المبدئي من قبل محامي, سيتم التواصل معك للبدء في الاجراءات العملية"
+		);
+		
 	}
 
 	@Transactional
@@ -93,8 +102,14 @@ public class LawyerService {
 		
 		propertyRepository.save(property);
 		
-		notificationService.sendNotification(contract.getOwner(), "لقد قام المحامي باتمام العمل على الحجز خاصتك");
-		notificationService.sendNotification(contract.getSeeker(), "لقد قام المحامي باتمام العمل على الحجز خاصتك");
+		notificationService.sendNotification(
+				contract.getOwner(),
+				"لقد قام المحامي باتمام العمل على الحجز خاصتك"
+		);
+		notificationService.sendNotification(
+				contract.getSeeker(), 
+				"لقد قام المحامي باتمام العمل على الحجز خاصتك"
+		);
 		
 	}
 
@@ -112,6 +127,15 @@ public class LawyerService {
 		contract.setStatus(InitialContractStatus.PENDING_PROCESSING);
 		
 		initialContractRepository.save(contract);
+		
+		notificationService.sendNotification(
+				contract.getOwner(), 
+				"لقد قام المحامي بالغاء العمل على الحجز خاصتك"
+		);
+		notificationService.sendNotification(
+				contract.getSeeker(), 
+				"لقد قام المحامي بالغاء العمل على الحجز خاصتك"
+		);
 		
 	}
 
