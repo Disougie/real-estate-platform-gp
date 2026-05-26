@@ -1,6 +1,7 @@
 package com.disougie.app_user.lawyer;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import com.disougie.property.entity.Property;
 import com.disougie.property.entity.PropertyStatus;
 import com.disougie.security.JwtService;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -57,6 +59,13 @@ public class LawyerService {
 		InitialContract contract = initialContractRepository.findById(id).orElseThrow(
 				() -> new ResourceNotFoundException("contract not found")
 		);
+		
+		if(contract.getLawyer() != null) {
+			throw new ConstraintViolationException(
+					"للاسف تم قبول هذا الحجز من قبل محامي اخر", 
+					Set.of()
+			);
+		}
 		
 		AppUser lawyer = JwtService.getCurrentUser();
 		
