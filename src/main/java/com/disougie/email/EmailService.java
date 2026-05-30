@@ -12,6 +12,7 @@ import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,8 @@ public class EmailService implements EmailSender{
 	
 	private final JavaMailSender mailSender;
 	private final RabbitTemplate rabbitTemplate;
+	@Value("${SERVER_URL}")
+	private String serverUrl;
 	
 	private void sendMimeMessage(
 			String recipientName,
@@ -68,7 +71,7 @@ public class EmailService implements EmailSender{
 		
 		MessageProperties messageProperties = message.getMessageProperties();
 		try {
-			String link = "http://localhost:8080/api/v1/token/verify?token=" + request.getToken();
+			String link = "http://" + serverUrl + "/api/v1/token/verify?token=" + request.getToken();
 			
 			sendMimeMessage(
 					request.getRecipientName(),
@@ -113,7 +116,7 @@ public class EmailService implements EmailSender{
 		MessageProperties messageProperties = message.getMessageProperties();
 		
 		try {
-			String link = "http://localhost:8080/api/v1/token/verify-change?token=" + request.getToken();
+			String link = "http://"+serverUrl+"/api/v1/token/verify-change?token=" + request.getToken();
 			
 			sendMimeMessage(
 					request.getRecipientName(),
@@ -155,7 +158,7 @@ public class EmailService implements EmailSender{
 		MessageProperties messageProperties = message.getMessageProperties();
 
 		try {
-			String link = "http://localhost:8080/api/v1/reset-password?token=" + request.getToken();
+			String link = "http://"+serverUrl+"/api/v1/reset-password?token=" + request.getToken();
 			
 			sendMimeMessage(
 					request.getRecipientName(),

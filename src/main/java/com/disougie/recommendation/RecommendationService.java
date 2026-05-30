@@ -36,11 +36,8 @@ public class RecommendationService {
 	
 	@RabbitListener(queues = "#{recommmendationQueue.name}", ackMode = "MANUAL")
 	public void updateUserPreferences(
-			RecommendationRequest request,
-			Message message, 
-			Channel channel
+			RecommendationRequest request, Message message, Channel channel
 	) throws IOException {
-		
 		MessageProperties messageProperties = message.getMessageProperties();
 		try {	
 			int requestValue = request.eventType().equals(EventType.FAVOURITE) ? 3 : 1;
@@ -64,8 +61,7 @@ public class RecommendationService {
 						.preferencedPrice(propertyPrice)
 						.preferencedSize(propertySize)
 						.preferencedCont(1)
-						.build();
-				
+						.build();	
 				userPreferenceRepository.save(userPreference);
 			}
 			else {
@@ -86,10 +82,10 @@ public class RecommendationService {
 						userPreference.getPreferencedCont() + 1
 				);
 				userPreference.setPreferencedPrice(
-						(userPreference.getPreferencedPrice() + propertyPrice) / userPreference.getPreferencedCont()
+						(userPreference.getPreferencedPrice() * userPreference.getPreferencedCont() + propertyPrice) / userPreference.getPreferencedCont()
 				);
 				userPreference.setPreferencedSize(
-						(userPreference.getPreferencedSize() + propertySize) / userPreference.getPreferencedCont()
+						(userPreference.getPreferencedSize() * userPreference.getPreferencedCont() + propertySize) / userPreference.getPreferencedCont()
 				);
 				
 				userPreferenceRepository.save(userPreference);
@@ -108,70 +104,79 @@ public class RecommendationService {
 	
 	public void computRecommendations(UserPreference preference) {
 		
-		double preferencedPrice = preference.getPreferencedPrice();
-		int preferencedSize = preference.getPreferencedSize();
-		List<Property> properties = propertyRepository.findUserPrefrencePropertyies(
-				preference.getPreferencedCity().keySet(), 
-				preference.getPreferencedArea().keySet(), 
-				preference.getPreferencedType().keySet(), 
-				preferencedPrice - preferencedPrice * 0.2, 
-				preferencedPrice + preferencedPrice * 0.2, 
-				(int)(preferencedSize - preferencedSize * 0.2),
-				(int)(preferencedSize + preferencedSize * 0.2),
-				PageRequest.of(0, 20)
-		);
-		
-		int maxAreaWeight = 0;
-		for(int value : preference.getPreferencedArea().values()) 
-			maxAreaWeight = Math.max(maxAreaWeight, value);
-		
-		int maxCityWeight = 0;
-		for(int value : preference.getPreferencedCity().values()) 
-			maxCityWeight = Math.max(maxCityWeight, value);
-		
-		int maxTypeWeight = 0;
-		for(int value : preference.getPreferencedType().values()) 
-			maxTypeWeight = Math.max(maxTypeWeight, value);
-		
-		
-		PriorityQueue<RecommendationItem> recommendations = 
-				new PriorityQueue<>((r1,r2) -> (int)(r1.score()*100 - r2.score()*100));
-		
-		/*
-		 * Cost:
-		 *   city = 0.3
-		 *   price = 0.3
-		 *   type = 0.2
-		 *   area = 0.1
-		 *   size = 0.1
-		 */
-		
-		for(Property property : properties) {
-			double cityScore = preference.getPreferencedCity().getOrDefault(property.getLocation().getCity(), 0) / maxCityWeight;
-			double areaScore = preference.getPreferencedArea().getOrDefault(property.getLocation().getArea(), 0) / maxAreaWeight;
-			double typeScore = preference.getPreferencedType().getOrDefault(property.getType(), 0) / maxTypeWeight;
-			double priceScore = 1 - (property.getPrice() - preferencedPrice) / preferencedPrice;
-			double sizeScore = 1 - (property.getFeatures().getSize() - preferencedSize) / preferencedSize;
-			double score = cityScore * 0.3 + 
-						   priceScore * 0.3 + 
-						   typeScore * 0.2 + 
-						   areaScore * 0.1 + 
-						   sizeScore * 0.1;
-			recommendations.offer(new RecommendationItem(property.getId(), score));
-			if(recommendations.size() > 15)
-				recommendations.poll();
+		try {	
+			double preferencedPrice = preference.getPreferencedPrice();
+			int preferencedSize = preference.getPreferencedSize();
+			
+			//get properties that satisfy user preference
+			List<Property> properties = propertyRepository.findUserPrefrencePropertyies(
+					preference.getPreferencedCity().keySet(), 
+					preference.getPreferencedArea().keySet(), 
+					preference.getPreferencedType().keySet(), 
+					preferencedPrice - preferencedPrice * 0.2, 
+					preferencedPrice + preferencedPrice * 0.2, 
+					(int)(preferencedSize - preferencedSize * 0.2),
+					(int)(preferencedSize + preferencedSize * 0.2),
+					PageRequest.of(0, 20)
+			);
+			
+			// calculate the max weight for city, area & type to use it in the score
+			int maxAreaWeight = 0;
+			for(int value : preference.getPreferencedArea().values()) 
+				maxAreaWeight = Math.max(maxAreaWeight, value);
+			
+			int maxCityWeight = 0;
+			for(int value : preference.getPreferencedCity().values()) 
+				maxCityWeight = Math.max(maxCityWeight, value);
+			
+			int maxTypeWeight = 0;
+			for(int value : preference.getPreferencedType().values()) 
+				maxTypeWeight = Math.max(maxTypeWeight, value);
+			
+			// use the priority queue the sort the properties according the preference score in O(n * log(n)) time complexity
+			PriorityQueue<RecommendationItem> recommendations = 
+					new PriorityQueue<>((r1,r2) -> (int)(r1.score()*100 - r2.score()*100));
+			
+			/*
+			 * Cost values:
+			 *   city = 0.3
+			 *   price = 0.3
+			 *   type = 0.2
+			 *   area = 0.1
+			 *   size = 0.1
+			 */
+			
+			// Calculate the Score
+			for(Property property : properties) {
+				double cityScore = preference.getPreferencedCity().getOrDefault(property.getLocation().getCity(), 0) / maxCityWeight;
+				double areaScore = preference.getPreferencedArea().getOrDefault(property.getLocation().getArea(), 0) / maxAreaWeight;
+				double typeScore = preference.getPreferencedType().getOrDefault(property.getType(), 0) / maxTypeWeight;
+				double priceScore = 1 - (property.getPrice() - preferencedPrice) / preferencedPrice;
+				double sizeScore = 1 - (property.getFeatures().getSize() - preferencedSize) / preferencedSize;
+				double score = cityScore * 0.3 + 
+							   priceScore * 0.3 + 
+							   typeScore * 0.2 + 
+							   areaScore * 0.1 + 
+							   sizeScore * 0.1;
+				recommendations.offer(new RecommendationItem(property.getId(), score));
+				if(recommendations.size() > 15)
+					recommendations.poll();
+			}
+			
+			List<String> result = new ArrayList<>(
+					recommendations.stream().map(r -> r.id()).toList()
+			);
+			
+			// Save the result in the cache for optimization
+			redisTemplate.opsForValue().set(
+					"recommendation:user:" + preference.getUserId(),
+					result,
+					15,
+					TimeUnit.MINUTES
+			);
+		} catch (Exception e) {
+			
 		}
-		
-		List<String> result = new ArrayList<>(
-				recommendations.stream().map(r -> r.id()).toList()
-		);
-		
-		redisTemplate.opsForValue().set(
-				"recommendation:user:" + preference.getUserId(),
-				result,
-				15,
-				TimeUnit.MINUTES
-		);
 	}
 
 
@@ -195,6 +200,10 @@ public class RecommendationService {
 			propertyIds = (List<String>)redisTemplate
 					.opsForValue()
 					.get("recommendation:user:" + user.getId());
+			
+			if(propertyIds == null){
+				return List.of();
+			}
 		}
 		
 		List<PropertyDetailedResponse> recommmendations =  new ArrayList<>();
