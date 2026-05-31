@@ -115,9 +115,7 @@ public class ExceptionHandlingController {
 			e.getMessage(),
 			LocalDateTime.now()
 		);
-		
-		e.printStackTrace();
-		
+				
 		return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
 	}
 	
@@ -133,7 +131,7 @@ public class ExceptionHandlingController {
 			LocalDateTime.now()
 		);
 		
-		e.printStackTrace();
+//		e.printStackTrace();
 				
 		return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
 	}

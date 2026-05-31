@@ -100,7 +100,7 @@ public class EmailService implements EmailSender{
 			);
 			channel.basicAck(messageProperties.getDeliveryTag(), false);
 			log.warn("email sending failed but trying to send it again");
-			
+			e.printStackTrace();
 		} 
 		
 	}
@@ -143,6 +143,8 @@ public class EmailService implements EmailSender{
 					MessageBuilder.fromMessage(message).build()
 			);
 			channel.basicAck(messageProperties.getDeliveryTag(), false);
+			log.warn("email sending failed but trying to send it again");
+			e.printStackTrace();
 		}
 		
 	}
@@ -185,6 +187,8 @@ public class EmailService implements EmailSender{
 					MessageBuilder.fromMessage(message).build()
 			);
 			channel.basicAck(messageProperties.getDeliveryTag(), false);
+			log.warn("email sending failed but trying to send it again");
+			e.printStackTrace();
 		}
 		
 	}
