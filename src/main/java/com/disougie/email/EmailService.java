@@ -6,6 +6,7 @@ import static com.disougie.email.EmailMQConstant.RESET_RETRY_ROUTING_KEY;
 import static com.disougie.email.EmailMQConstant.VERIFY_RETRY_ROUTING_KEY;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
@@ -13,14 +14,18 @@ import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import com.rabbitmq.client.Channel;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import brevo.ApiClient;
+import brevo.Configuration;
+import brevo.auth.ApiKeyAuth;
+import brevoApi.TransactionalEmailsApi;
+import brevoModel.SendSmtpEmail;
+import brevoModel.SendSmtpEmailSender;
+import brevoModel.SendSmtpEmailTo;
+// Removed jakarta.mail imports
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,7 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EmailService implements EmailSender{
 	
-	private final JavaMailSender mailSender;
+	@Value("${brevo.api.key}")
+	private String brevoApiKey;
 	private final RabbitTemplate rabbitTemplate;
 	@Value("${SERVER_URL}")
 	private String serverUrl;
@@ -40,24 +46,29 @@ public class EmailService implements EmailSender{
 			String title,
 			String body,
 			String link
-	) throws MessagingException, IOException {
+	) throws Exception {
 		
-		MimeMessage mimeMessage = mailSender.createMimeMessage();
-		MimeMessageHelper helper = new MimeMessageHelper(mimeMessage,"utf-8");
-		helper.setTo(recipientEmail);
-		helper.setFrom("adisougie@gmail.com");
-		helper.setSubject(title);
-		helper.setText(
-				buildEmailText(
-						recipientName,
-						link,
-						title,
-						body
-				),
-				true
-		);
-		mailSender.send(mimeMessage);
-		log.info("email sent to smtp");
+		ApiClient defaultClient = Configuration.getDefaultApiClient();
+		ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+		apiKey.setApiKey(brevoApiKey);
+		
+		TransactionalEmailsApi apiInstance = new TransactionalEmailsApi();
+		SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+		
+		SendSmtpEmailSender sender = new SendSmtpEmailSender();
+		sender.setEmail("adisougie@gmail.com");
+		sendSmtpEmail.setSender(sender);
+		
+		SendSmtpEmailTo to = new SendSmtpEmailTo();
+		to.setEmail(recipientEmail);
+		to.setName(recipientName);
+		sendSmtpEmail.setTo(Collections.singletonList(to));
+		
+		sendSmtpEmail.setSubject(title);
+		sendSmtpEmail.setHtmlContent(buildEmailText(recipientName, link, title, body));
+		
+		apiInstance.sendTransacEmail(sendSmtpEmail);
+		log.info("email sent via Brevo HTTP API");
 		
 	}
 	
