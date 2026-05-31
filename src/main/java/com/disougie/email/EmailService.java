@@ -82,7 +82,7 @@ public class EmailService implements EmailSender{
 		
 		MessageProperties messageProperties = message.getMessageProperties();
 		try {
-			String link = "http://" + serverUrl + "/api/v1/token/verify?token=" + request.getToken();
+			String link = serverUrl + "/api/v1/token/verify?token=" + request.getToken();
 			
 			sendMimeMessage(
 					request.getRecipientName(),
@@ -127,7 +127,7 @@ public class EmailService implements EmailSender{
 		MessageProperties messageProperties = message.getMessageProperties();
 		
 		try {
-			String link = "http://"+serverUrl+"/api/v1/token/verify-change?token=" + request.getToken();
+			String link = serverUrl+"/api/v1/token/verify-change?token=" + request.getToken();
 			
 			sendMimeMessage(
 					request.getRecipientName(),
@@ -171,7 +171,7 @@ public class EmailService implements EmailSender{
 		MessageProperties messageProperties = message.getMessageProperties();
 
 		try {
-			String link = "http://"+serverUrl+"/api/v1/reset-password?token=" + request.getToken();
+			String link = serverUrl+"/api/v1/reset-password?token=" + request.getToken();
 			
 			sendMimeMessage(
 					request.getRecipientName(),
