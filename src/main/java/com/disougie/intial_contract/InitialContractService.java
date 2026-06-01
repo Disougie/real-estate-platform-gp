@@ -147,6 +147,10 @@ public class InitialContractService {
 				InitialContractStatus.PENDING_PROCESSING,
 				PropertyStatus.PENDING_PROCESSING
 		);
+		notificationService.sendNotification(
+				contract.getSeeker(), 
+				"تم قبول طلب الحجز الذي ارسلته من قبل المالك, الان حجزك في قائمة الانتظار الى ان يتم قبول العمل عليه من قبل محامي"
+		);
 	}
 
 	public void rejectContract(long id) {
