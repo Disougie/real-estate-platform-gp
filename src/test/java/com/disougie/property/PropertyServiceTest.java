@@ -128,7 +128,7 @@ public class PropertyServiceTest {
         when(propertyRepository.findById(propertyId)).thenReturn(Optional.of(mockProperty));
         
         PropertyDetailedResponse expectedResponse = new PropertyDetailedResponse(
-                "prop-1", "Villa", "ahmed", "", 100000.0, PropertyType.PURCHASE, PropertyStatus.AVAILABLE, null, null, null, null, null, null
+                "prop-1", "Test Property", "ahmed", "", 100000.0, PropertyType.PURCHASE, PropertyStatus.AVAILABLE, null, null, null, null, null, null
         );
         when(propertyDetailedResponseMapper.apply(mockProperty)).thenReturn(expectedResponse);
 

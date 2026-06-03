@@ -28,7 +28,6 @@ import org.springframework.security.access.AccessDeniedException;
 
 import com.disougie.app_user.AppUser;
 import com.disougie.app_user.AppUserRepository;
-import com.disougie.exception.ResourceNotFoundException;
 import com.disougie.notification.NotificationService;
 import com.disougie.property.PropertyRepository;
 import com.disougie.property.entity.Property;

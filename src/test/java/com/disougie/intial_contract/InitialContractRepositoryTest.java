@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -26,6 +25,7 @@ import com.disougie.app_user.AppUser;
 import com.disougie.app_user.AppUserRole;
 import com.disougie.config.TestConfig;
 import com.disougie.redis.RateLimitFilter;
+import com.disougie.util.TimeUtil;
 
 @DataJpaTest(
 	excludeAutoConfiguration = {
@@ -67,8 +67,11 @@ public class InitialContractRepositoryTest {
         contract1.setProperty_id("prop-1");
         contract1.setOwner(owner);
         contract1.setSeeker(seeker);
+        contract1.setType(InitialContractType.PURCHASE);
         contract1.setStatus(InitialContractStatus.PENDING_PROCESSING);
-        contract1.setCreated_at(LocalDateTime.now().minusDays(2));
+        contract1.setCreated_at(TimeUtil.now().minusDays(2));
+        contract1.setExpire_at(TimeUtil.now());
+        contract1.setOverall_contract_amount(20000000.0);
         entityManager.persistAndFlush(contract1);
 
         contract2 = new InitialContract();
@@ -76,8 +79,11 @@ public class InitialContractRepositoryTest {
         contract2.setOwner(owner);
         contract2.setSeeker(seeker);
         contract2.setLawyer(lawyer);
+        contract2.setType(InitialContractType.PURCHASE);
         contract2.setStatus(InitialContractStatus.UNDER_PROCESS);
-        contract2.setCreated_at(LocalDateTime.now().minusDays(1));
+        contract2.setCreated_at(TimeUtil.now().minusDays(1));
+        contract2.setExpire_at(TimeUtil.now().plusDays(1));
+        contract2.setOverall_contract_amount(15000000.0);
         entityManager.persistAndFlush(contract2);
     }
 
