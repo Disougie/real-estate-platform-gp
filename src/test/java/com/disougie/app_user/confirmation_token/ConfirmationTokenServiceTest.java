@@ -29,6 +29,7 @@ import com.disougie.app_user.AppUserRepository;
 import com.disougie.app_user.change_info.ChangeEmail;
 import com.disougie.app_user.change_info.ChangeEmailRepository;
 import com.disougie.email.EmailRequest;
+import com.disougie.util.TimeUtil;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -61,6 +62,7 @@ public class ConfirmationTokenServiceTest {
         mockUser = AppUser.builder()
                 .id(1L)
                 .name("Test User")
+                .phone("0123456789")
                 .email("user@test.com")
                 .enabled(false)
                 .build();
@@ -104,7 +106,7 @@ public class ConfirmationTokenServiceTest {
     @DisplayName("Should throw ConstraintViolationException if token is expired when verifying")
     void verifyToken_ShouldThrowExceptionForExpiredToken() {
         // Given
-        mockToken.setExpireAt(LocalDateTime.now().minusMinutes(5));
+        mockToken.setExpireAt(TimeUtil.now().minusMinutes(5));
         when(confirmationTokenRepository.findByToken("sample-token")).thenReturn(Optional.of(mockToken));
 
         // When & Then
@@ -118,7 +120,7 @@ public class ConfirmationTokenServiceTest {
     void resendToken_ShouldUpdateTokenAndSendEmail() {
         // Given
         ResendTokenRequest request = new ResendTokenRequest("user@test.com");
-        mockToken.setExpireAt(LocalDateTime.now().minusMinutes(5)); // ensure it's expired so it can be resent
+        mockToken.setExpireAt(TimeUtil.now().minusMinutes(20)); // ensure it's expired so it can be resent
         when(appUserRepository.findByEmail("user@test.com")).thenReturn(Optional.of(mockUser));
         when(confirmationTokenRepository.findByAppUser(mockUser)).thenReturn(Optional.of(mockToken));
 

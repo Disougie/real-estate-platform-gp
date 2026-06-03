@@ -10,21 +10,34 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.disougie.config.TestConfig;
+import com.disougie.redis.RateLimitFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(
     value = ForgotPasswordController.class,
-    excludeAutoConfiguration = {SecurityAutoConfiguration.class},
-    excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebSecurityConfigurer.class)
+    excludeAutoConfiguration = {
+    		SecurityAutoConfiguration.class, 
+    	    UserDetailsServiceAutoConfiguration.class
+    },
+	excludeFilters = {
+	        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebSecurityConfigurer.class),
+	        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RateLimitFilter.class) // استبعاد الفلتر
+	}
 )
+@AutoConfigureMockMvc(addFilters = false)
+@Import(TestConfig.class)
 public class ForgotPasswordControllerTest {
 
     @Autowired
@@ -33,8 +46,7 @@ public class ForgotPasswordControllerTest {
     @MockitoBean
     private PasswordService passwordService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @DisplayName("POST /api/v1/forgot-password - Should trigger forgot password process and return message")

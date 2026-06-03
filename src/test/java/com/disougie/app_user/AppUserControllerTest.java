@@ -12,23 +12,36 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.WebSecurityConfigurer;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.disougie.config.TestConfig;
+import com.disougie.redis.RateLimitFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(
     value = AppUserController.class,
-    excludeAutoConfiguration = {SecurityAutoConfiguration.class},
-    excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebSecurityConfigurer.class)
+    excludeAutoConfiguration = {
+    		SecurityAutoConfiguration.class, 
+    	    UserDetailsServiceAutoConfiguration.class
+    },
+	excludeFilters = {
+	        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebSecurityConfigurer.class),
+	        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = RateLimitFilter.class) // استبعاد الفلتر
+	}
 )
+@AutoConfigureMockMvc(addFilters = false)
+@Import(TestConfig.class)
 public class AppUserControllerTest {
-
+	
     @Autowired
     private MockMvc mockMvc;
 
@@ -37,23 +50,22 @@ public class AppUserControllerTest {
 
     @MockitoBean
     private DisableUserService disableUserService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @DisplayName("GET /api/v1/users/{id} - Should return user details")
     void getUser_ShouldReturn200() throws Exception {
         // Given
         Long userId = 1L;
-        AppUserResponse response = new AppUserResponse(userId, "Jane Doe", "jane@example.com", "987654321", true, null);
+        AppUserResponse response = new AppUserResponse(userId, "Jane Doe", "jane@example.com", "0987654321", true, null);
         when(appUserService.getUser(userId)).thenReturn(response);
 
         // When & Then
         mockMvc.perform(get("/api/v1/users/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(userId))
+                .andExpect(jsonPath("$.id").value(userId.intValue()))
                 .andExpect(jsonPath("$.name").value("Jane Doe"))
                 .andExpect(jsonPath("$.email").value("jane@example.com"));
     }

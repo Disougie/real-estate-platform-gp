@@ -28,6 +28,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.disougie.app_user.AppUser;
 import com.disougie.app_user.AppUserRepository;
 import com.disougie.email.EmailRequest;
+import com.disougie.util.TimeUtil;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -145,7 +146,7 @@ public class PasswordServiceTest {
     @DisplayName("Should throw ConstraintViolationException if token is expired")
     void resetPassword_ShouldThrowExceptionIfTokenIsExpired() {
         // Given
-        mockToken.setExpireAt(LocalDateTime.now().minusMinutes(5));
+        mockToken.setExpireAt(TimeUtil.now().minusMinutes(5));
         ResetPasswordRequest request = new ResetPasswordRequest("reset-token-123", "pass", "pass");
         when(resetPasswordTokenRepository.findByToken("reset-token-123")).thenReturn(Optional.of(mockToken));
 

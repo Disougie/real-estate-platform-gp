@@ -58,7 +58,7 @@ public class RegistrationServiceTest {
     @BeforeEach
     void setUp() {
         validRequest = new RegistrationRequest(
-                "John Doe", "john@example.com", "password123", "password123", "123456789"
+                "John Doe", "0123456789", "john@example.com", "password123", "password123"
         );
 
         savedUser = AppUser.builder()
@@ -119,7 +119,7 @@ public class RegistrationServiceTest {
     void registerUser_ShouldThrowExceptionIfPasswordsMismatch() {
         // Given
         RegistrationRequest mismatchRequest = new RegistrationRequest(
-                "John Doe", "john@example.com", "password123", "differentPassword", "123456789"
+                "John Doe", "0123456789", "john@example.com", "password123", "differentPassword"
         );
         when(appUserRepository.findByEmailIncludingDeleted("john@example.com")).thenReturn(Optional.empty());
 

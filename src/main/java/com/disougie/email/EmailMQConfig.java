@@ -55,6 +55,7 @@ public class EmailMQConfig {
 		return converter;
 	}
 	
+//	@Bean
 //	ObjectMapper objectMapper() {
 //		return JsonMapper
 //				.builder()
