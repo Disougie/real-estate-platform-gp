@@ -57,6 +57,7 @@ public class EmailService implements EmailSender{
 		
 		SendSmtpEmailSender sender = new SendSmtpEmailSender();
 		sender.setEmail("adisougie@gmail.com");
+		sender.setName("منصة عقارات السودان");
 		sendSmtpEmail.setSender(sender);
 		
 		SendSmtpEmailTo to = new SendSmtpEmailTo();
